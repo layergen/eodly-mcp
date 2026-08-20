@@ -46,7 +46,7 @@ async function api(path) {
 
 const json = (data) => ({ content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] })
 
-const server = new McpServer({ name: 'eodly', version: '0.1.1' })
+const server = new McpServer({ name: 'eodly', version: '0.1.2' })
 
 server.tool(
   'whoami',
