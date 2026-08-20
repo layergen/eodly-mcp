@@ -35,7 +35,17 @@ jobs:
 
       # 1) Publish to npm via Trusted Publishing (OIDC). No token: npm verifies this
       #    workflow's identity, and records provenance because repo and package are public.
-      - run: npm publish --access public
+      #    Skip if this version is already on npm, so a re-run (e.g. to retry the registry
+      #    step below) does not fail on "cannot publish over previously published versions".
+      - name: Publish to npm
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VER=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VER" version >/dev/null 2>&1; then
+            echo "$NAME@$VER is already published, skipping npm publish."
+          else
+            npm publish --access public
+          fi
 
       # 2) Publish to the official MCP registry via GitHub OIDC (no secret needed).
       - name: Install mcp-publisher
