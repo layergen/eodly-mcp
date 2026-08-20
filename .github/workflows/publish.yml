@@ -2,10 +2,12 @@
 # Release. Bump the version in package.json + server.json first, commit, then create
 # a Release for that version.
 #
-# One-time setup in the eodly/mcp repo:
-#   - Add a repo secret NPM_TOKEN: an npm "Automation" / granular access token with
-#     publish rights to @eodly/mcp (npmjs.com > Access Tokens).
-#   - Nothing else: the MCP registry step authenticates via GitHub OIDC (no secret).
+# One-time setup, no secrets required. Both publishes authenticate via GitHub OIDC:
+#   - npm: configure Trusted Publishing on npmjs.com for @eodly/mcp
+#     (package Settings > Trusted Publisher) pointing at layergen/eodly-mcp and this
+#     workflow filename, publish.yml. npm then trusts this workflow directly, so there
+#     is no NPM_TOKEN to store, expire or rotate, and npm records build provenance.
+#   - MCP registry: authenticates via GitHub OIDC for the io.github.layergen/* namespace.
 name: Publish
 
 on:
@@ -24,13 +26,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Trusted Publishing needs Node >= 22.14 and npm >= 11.5.1.
+          node-version: 22
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      # setup-node pins an older bundled npm; Trusted Publishing needs 11.5.1+.
+      - run: npm install -g npm@latest
 
-      # 1) Publish the package to npm (publishes the version in package.json).
+      # 1) Publish to npm via Trusted Publishing (OIDC). No token: npm verifies this
+      #    workflow's identity, and records provenance because repo and package are public.
       - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # 2) Publish to the official MCP registry via GitHub OIDC (no secret needed).
       - name: Install mcp-publisher
