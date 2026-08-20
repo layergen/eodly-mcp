@@ -1,0 +1,44 @@
+# Publishes @eodly/mcp to npm AND the official MCP registry when you cut a GitHub
+# Release. Bump the version in package.json + server.json first, commit, then create
+# a Release for that version.
+#
+# One-time setup in the eodly/mcp repo:
+#   - Add a repo secret NPM_TOKEN: an npm "Automation" / granular access token with
+#     publish rights to @eodly/mcp (npmjs.com > Access Tokens).
+#   - Nothing else: the MCP registry step authenticates via GitHub OIDC (no secret).
+name: Publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write # required for the MCP registry GitHub OIDC login
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      # 1) Publish the package to npm (publishes the version in package.json).
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # 2) Publish to the official MCP registry via GitHub OIDC (no secret needed).
+      - name: Install mcp-publisher
+        run: curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+      - name: Publish to MCP registry
+        # If `login github-oidc` errors, check the current subcommand in the registry
+        # docs (github.com/modelcontextprotocol/registry); the CLI auto-detects the
+        # Actions OIDC token for the io.github.layergen/* namespace.
+        run: |
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish

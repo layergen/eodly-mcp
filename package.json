@@ -1,0 +1,43 @@
+{
+  "name": "@eodly/mcp",
+  "version": "0.1.1",
+  "mcpName": "io.github.layergen/eodly-mcp",
+  "description": "MCP server for Eodly. Read your team's end-of-day reports and roster from any MCP client (Claude, Cursor) using an Eodly API key.",
+  "type": "module",
+  "bin": {
+    "eodly-mcp": "index.js"
+  },
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "model-context-protocol",
+    "eodly",
+    "end-of-day-report",
+    "standup",
+    "async-standup",
+    "ai-agent",
+    "claude",
+    "cursor"
+  ],
+  "homepage": "https://eodly.io/developers",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/layergen/eodly-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/layergen/eodly-mcp/issues"
+  },
+  "author": "Eodly (LayerGen LLC)",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.23.8"
+  }
+}
