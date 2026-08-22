@@ -17,6 +17,10 @@ export const REPORT_VIEW_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<!-- The view is self-contained, so everything is locked down except the inline style and
+     script it ships with. frame-ancestors names the two hosts that embed MCP App views. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://eodly.io; form-action 'none'; base-uri 'none'; frame-ancestors https://chatgpt.com https://claude.ai" />
 <title>Eodly report</title>
 <style>
   :root{
