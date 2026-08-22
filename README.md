@@ -2,7 +2,7 @@
 
 Read your team's sourced end-of-day reports and roster from any MCP client, using an Eodly API key.
 
-**Hosted endpoint:** `https://eodly.io/api/mcp` (Streamable HTTP, nothing to install). **Local:** `npx @eodly/mcp` (stdio). **Auth:** set `EODLY_API_KEY` to an Eodly API key (`eodly_sk_...`) created in the app under Settings, Developer, API keys. **Tools:** `whoami`, `list_reports`, `get_report`, `list_team`. Read-only, and scoped to one organization.
+**Hosted endpoint:** `https://eodly.io/api/mcp` (Streamable HTTP, nothing to install). **Local:** `npx @eodly/mcp` (stdio). **Auth:** set `EODLY_API_KEY` to an Eodly API key (`eodly_sk_...`) created in the app under Settings, Developer, API keys. **Tools:** `whoami`, `list_reports`, `get_report`, `list_team`. **MCP Apps:** report tools render as an interactive card in hosts that support the UI extension. Read-only, and scoped to one organization.
 
 [Eodly](https://eodly.io) sends founders and team leads one sourced report every evening: who shipped, who is silent, who is slipping. Your team checks in from Slack, Telegram, Microsoft Teams, or Discord, and Eodly weighs each claim against the real work in GitHub and Linear. This server exposes those reports to MCP clients such as Claude and Cursor, so you can ask an agent "who is slipping this week?" and have it pull the sourced answer.
 
@@ -52,6 +52,18 @@ Cursor and other MCP clients use the same shape.
 | `list_reports` | Recent end-of-day report summaries, most recent first (`limit`, 1-50, default 14) | `reports:read` |
 | `get_report` | Full structured content of one report by id | `reports:read` |
 | `list_team` | The team roster: names, roles, departments | `team:read` |
+
+## Interactive report card (MCP Apps)
+
+`list_reports` and `get_report` ship an interactive view alongside their JSON. In a host that supports the MCP Apps UI extension ([SEP-1865](https://github.com/modelcontextprotocol/modelcontextprotocol)), the report renders as a card (who shipped, who's silent, who's slipping) instead of a wall of text. Hosts without the extension get the same JSON as before, so nothing breaks.
+
+| | |
+| --- | --- |
+| Resource | `ui://eodly/report.html` |
+| MIME type | `text/html;profile=mcp-app` |
+| Capability | `io.modelcontextprotocol/ui` |
+
+The view is fully self-contained (inline CSS and JS, no network access, no external assets) and declares an empty CSP allowlist. The hosted endpoint at `https://eodly.io/api/mcp` serves the identical view.
 
 ## Environment
 

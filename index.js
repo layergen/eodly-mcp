@@ -9,6 +9,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
+import { REPORT_VIEW_URI, REPORT_VIEW_MIME, REPORT_VIEW_HTML } from './report-view.js'
 
 const API_BASE = (process.env.EODLY_API_BASE ?? 'https://eodly.io/api/v1').replace(/\/$/, '')
 const API_KEY = process.env.EODLY_API_KEY
@@ -44,35 +45,87 @@ async function api(path) {
   return body
 }
 
-const json = (data) => ({ content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] })
+// `structuredContent` is what an MCP Apps view renders from (the report card reads it out of
+// the ui/notifications/tool-result message), so every tool returns it alongside the text.
+const json = (data) => ({
+  content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
+  structuredContent: data,
+})
 
-const server = new McpServer({ name: 'eodly', version: '0.1.2' })
+// MCP Apps (ext-apps / SEP-1865): the report tools point their output at the ui:// view so a
+// compliant host renders it as an interactive card. Both the nested and legacy meta keys are
+// set for host compatibility. Mirrors the hosted endpoint at https://eodly.io/api/mcp.
+const REPORT_UI_META = {
+  ui: { resourceUri: REPORT_VIEW_URI, visibility: ['model', 'app'] },
+  'ui/resourceUri': REPORT_VIEW_URI,
+  // OpenAI Apps SDK convention (predates the MCP Apps standard); some hosts key on it.
+  'openai/outputTemplate': REPORT_VIEW_URI,
+}
 
-server.tool(
+const server = new McpServer(
+  { name: 'eodly', title: 'Eodly', version: '0.2.0' },
+  { capabilities: { extensions: { 'io.modelcontextprotocol/ui': { mimeTypes: [REPORT_VIEW_MIME] } } } },
+)
+
+server.registerResource(
+  'eodly_report_view',
+  REPORT_VIEW_URI,
+  {
+    description: "Interactive end-of-day report card: who shipped, who's slipping, who's silent.",
+    mimeType: REPORT_VIEW_MIME,
+  },
+  async () => ({
+    contents: [
+      {
+        uri: REPORT_VIEW_URI,
+        mimeType: REPORT_VIEW_MIME,
+        text: REPORT_VIEW_HTML,
+        // The view is fully self-contained, so it needs no network access at all.
+        _meta: { ui: { csp: { connectDomains: [], resourceDomains: [] }, prefersBorder: true } },
+      },
+    ],
+  }),
+)
+
+server.registerTool(
   'whoami',
-  'Identify the API key: returns the Eodly organization it belongs to and the scopes it holds.',
-  {},
+  {
+    description: 'Identify the API key: returns the Eodly organization it belongs to and the scopes it holds.',
+    inputSchema: {},
+  },
   async () => json(await api('/me')),
 )
 
-server.tool(
+server.registerTool(
   'list_reports',
-  'List recent end-of-day report summaries for the organization, most recent first. Requires the reports:read scope.',
-  { limit: z.number().int().min(1).max(50).optional().describe('Max reports to return (1-50, default 14).') },
+  {
+    description:
+      'List recent end-of-day report summaries for the organization, most recent first. Requires the reports:read scope.',
+    inputSchema: {
+      limit: z.number().int().min(1).max(50).optional().describe('Max reports to return (1-50, default 14).'),
+    },
+    _meta: REPORT_UI_META,
+  },
   async ({ limit }) => json(await api(`/reports${limit ? `?limit=${limit}` : ''}`)),
 )
 
-server.tool(
+server.registerTool(
   'get_report',
-  'Get the full structured content of a single end-of-day report by id (use list_reports to find ids). Requires the reports:read scope.',
-  { id: z.string().min(1).describe('The report id (UUID).') },
+  {
+    description:
+      'Get the full structured content of a single end-of-day report by id (use list_reports to find ids). Requires the reports:read scope.',
+    inputSchema: { id: z.string().min(1).describe('The report id (UUID).') },
+    _meta: REPORT_UI_META,
+  },
   async ({ id }) => json(await api(`/reports/${encodeURIComponent(id)}`)),
 )
 
-server.tool(
+server.registerTool(
   'list_team',
-  'List the team roster for the organization (names, roles, departments). Requires the team:read scope.',
-  {},
+  {
+    description: 'List the team roster for the organization (names, roles, departments). Requires the team:read scope.',
+    inputSchema: {},
+  },
   async () => json(await api('/team')),
 )
 
