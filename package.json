@@ -1,6 +1,6 @@
 {
   "name": "@eodly/mcp",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "mcpName": "io.github.layergen/eodly-mcp",
   "description": "MCP server for Eodly. Read your team's end-of-day reports and roster from any MCP client (Claude, Cursor) using an Eodly API key.",
   "type": "module",

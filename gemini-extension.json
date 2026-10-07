@@ -1,0 +1,10 @@
+{
+  "name": "eodly",
+  "version": "0.2.2",
+  "description": "Ask about your team's end-of-day reports and roster in Eodly: who shipped, who is quiet, who is slipping. Read-only, sign in with your Eodly account.",
+  "mcpServers": {
+    "eodly": {
+      "httpUrl": "https://eodly.io/mcp"
+    }
+  }
+}

@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.layergen/eodly-mcp",
-  "description": "Read your team's end-of-day reports and roster from Eodly.",
+  "description": "Read your team's end-of-day reports and roster from Eodly. Sign in with OAuth or use an API key.",
   "repository": {
     "url": "https://github.com/layergen/eodly-mcp",
     "source": "github"
   },
-  "version": "0.2.1",
+  "version": "0.2.2",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@eodly/mcp",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "transport": {
         "type": "stdio"
       },
@@ -28,7 +28,19 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://eodly.io/api/mcp"
+      "url": "https://eodly.io/mcp"
+    },
+    {
+      "type": "streamable-http",
+      "url": "https://eodly.io/api/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer followed by an Eodly API key (eodly_sk_...), created in the app under Settings > Developer > API keys.",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
     }
   ]
 }

@@ -63,7 +63,7 @@ const REPORT_UI_META = {
 }
 
 const server = new McpServer(
-  { name: 'eodly', title: 'Eodly', version: '0.2.1' },
+  { name: 'eodly', title: 'Eodly', version: '0.2.2' },
   { capabilities: { extensions: { 'io.modelcontextprotocol/ui': { mimeTypes: [REPORT_VIEW_MIME] } } } },
 )
 
